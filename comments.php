@@ -1,17 +1,19 @@
 <?php
 /**
- * The template for displaying comments
+ * The template for displaying comments.
  *
  * This is the template that displays the area of the page that contains both the current comments
  * and the comment form.
  *
- * @link https://developer.wordpress.org/themes/basics/template-hierarchy/
+ * @link https://codex.wordpress.org/Template_Hierarchy
  *
- * @package WordPress
- * @subpackage Twenty_Seventeen
- * @since Twenty Seventeen 1.0
- * @version 1.0
+ * @package Astra
+ * @since 1.0.0
  */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
 
 /*
  * If the current post is protected by a password and
@@ -25,65 +27,73 @@ if ( post_password_required() ) {
 
 <div id="comments" class="comments-area">
 
-	<?php
-	// You can start editing here -- including this comment!
-	if ( have_comments() ) :
-		?>
-		<h2 class="comments-title">
-			<?php
-			$comments_number = get_comments_number();
-			if ( '1' === $comments_number ) {
-				/* translators: %s: Post title. */
-				printf( _x( 'One Reply to &ldquo;%s&rdquo;', 'comments title', 'twentyseventeen' ), get_the_title() );
-			} else {
-				printf(
-					/* translators: 1: Number of comments, 2: Post title. */
-					_nx(
-						'%1$s Reply to &ldquo;%2$s&rdquo;',
-						'%1$s Replies to &ldquo;%2$s&rdquo;',
-						$comments_number,
-						'comments title',
-						'twentyseventeen'
-					),
-					number_format_i18n( $comments_number ),
-					get_the_title()
-				);
-			}
-			?>
-		</h2>
+	<?php astra_comments_before(); ?>
 
-		<ol class="comment-list">
-			<?php
-				wp_list_comments(
-					array(
-						'avatar_size' => 100,
-						'style'       => 'ol',
-						'short_ping'  => true,
-						'reply_text'  => twentyseventeen_get_svg( array( 'icon' => 'mail-reply' ) ) . __( 'Reply', 'twentyseventeen' ),
+	<?php if ( have_comments() ) : ?>
+		<div class="comments-count-wrapper">
+			<h3 class="comments-title">
+				<?php
+				$comments_title = apply_filters(
+					'astra_comment_form_title',
+					sprintf( // WPCS: XSS OK.
+						/* translators: 1: number of comments */
+						esc_html( _nx( '%1$s thought on &ldquo;%2$s&rdquo;', '%1$s thoughts on &ldquo;%2$s&rdquo;', get_comments_number(), 'comments title', 'astra' ) ),
+						number_format_i18n( get_comments_number() ),
+						get_the_title()
 					)
 				);
+
+				echo esc_html( $comments_title );
+				?>
+			</h3>
+		</div>
+
+		<?php if ( get_comment_pages_count() > 1 && get_option( 'page_comments' ) ) : ?>
+		<nav id="comment-nav-above" class="navigation comment-navigation" aria-label="<?php esc_html_e( 'Comments Navigation', 'astra' ); ?>">
+			<h3 class="screen-reader-text"><?php echo esc_html( astra_default_strings( 'string-comment-navigation-next', false ) ); ?></h3>
+			<div class="nav-links">
+
+				<div class="nav-previous"><?php previous_comments_link( astra_default_strings( 'string-comment-navigation-previous', false ) ); ?></div>
+				<div class="nav-next"><?php next_comments_link( astra_default_strings( 'string-comment-navigation-next', false ) ); ?></div>
+
+			</div><!-- .nav-links -->
+		</nav><!-- #comment-nav-above -->
+		<?php endif; ?>
+
+		<ol class="ast-comment-list">
+			<?php
+			wp_list_comments(
+				array(
+					'callback' => 'astra_theme_comment',
+					'style'    => 'ol',
+				)
+			);
 			?>
-		</ol>
+		</ol><!-- .ast-comment-list -->
 
-		<?php
-		the_comments_pagination(
-			array(
-				'prev_text' => twentyseventeen_get_svg( array( 'icon' => 'arrow-left' ) ) . '<span class="screen-reader-text">' . __( 'Previous', 'twentyseventeen' ) . '</span>',
-				'next_text' => '<span class="screen-reader-text">' . __( 'Next', 'twentyseventeen' ) . '</span>' . twentyseventeen_get_svg( array( 'icon' => 'arrow-right' ) ),
-			)
-		);
+		<?php if ( get_comment_pages_count() > 1 && get_option( 'page_comments' ) ) : ?>
+		<nav id="comment-nav-below" class="navigation comment-navigation" aria-label="<?php esc_html_e( 'Comments Navigation', 'astra' ); ?>">
+			<h3 class="screen-reader-text"><?php echo esc_html( astra_default_strings( 'string-comment-navigation-next', false ) ); ?></h3>
+			<div class="nav-links">
 
-	endif; // Check for have_comments().
+				<div class="nav-previous"><?php previous_comments_link( astra_default_strings( 'string-comment-navigation-previous', false ) ); ?></div>
+				<div class="nav-next"><?php next_comments_link( astra_default_strings( 'string-comment-navigation-next', false ) ); ?></div>
 
-	// If comments are closed and there are comments, let's leave a little note, shall we?
+			</div><!-- .nav-links -->
+		</nav><!-- #comment-nav-below -->
+		<?php endif; ?>
+
+	<?php endif; ?>
+
+	<?php
+		// If comments are closed and there are comments, let's leave a little note, shall we?
 	if ( ! comments_open() && get_comments_number() && post_type_supports( get_post_type(), 'comments' ) ) :
 		?>
+		<p class="no-comments"><?php echo esc_html( astra_default_strings( 'string-comment-closed', false ) ); ?></p>
+	<?php endif; ?>
 
-		<p class="no-comments"><?php _e( 'Comments are closed.', 'twentyseventeen' ); ?></p>
-		<?php
-	endif;
+	<?php comment_form(); ?>
 
-	comment_form();
-	?>
+	<?php astra_comments_after(); ?>
 
 </div><!-- #comments -->
